@@ -1,0 +1,211 @@
+general_configs : 
+  sdk_session_id: 
+    dev: 130d482b37484e8e9dc18b799f4e8ec7
+    uat: 130d482b37484e8e9dc18b799f4e8ec7
+    prod: 64ec92d6117247877965d152
+  tracking_env : dev
+
+data_engineering_ft:
+  datalake_configs:
+    input_tables :
+      source_1 : 
+        catalog_name : null
+        schema : car_price_hive_db
+        table : car_price_FT
+        primary_keys: index
+
+    output_tables :
+      output_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: feature_car_price_v4
+        primary_keys: index
+  storage_configs:
+    cloud_provider: azure
+    params:
+      storage_account_name: mlcdevtigerstorage38173
+      container_name: mlcore
+  is_scheduled : true
+  batch_size : 5000
+  cron_job_schedule: 0 */30 * ? * *
+
+data_engineering_gt:
+  datalake_configs:
+    input_tables :
+      source_1 : 
+        catalog_name : null
+        schema : car_price_hive_db
+        table : car_price_GT
+        primary_keys: index
+    output_tables :
+      output_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: ground_truth_car_price_v4
+        primary_keys: index
+  storage_configs:
+    cloud_provider: azure
+    params:
+      storage_account_name: mlcdevtigerstorage38173
+      container_name: mlcore  
+  is_scheduled : true
+  batch_size : 5000
+  cron_job_schedule: 0 */30 * ? * *
+
+feature_pipelines_ft:
+  datalake_configs:
+    input_tables :
+      input_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: feature_car_price_v4
+        primary_keys: index
+    output_tables :
+        output_1 :
+          catalog_name : null
+          schema : car_price_v4
+          table: transformed_feature_car_price_v4
+          primary_keys: index
+  storage_configs:
+    cloud_provider: azure
+    params:
+      storage_account_name: mlcdevtigerstorage38173
+      container_name: mlcore
+  is_scheduled: false
+
+feature_pipelines_gt:
+  datalake_configs:
+    input_tables : 
+      input_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: ground_truth_car_price_v4
+        primary_keys: index
+    output_tables : 
+        output_1 :
+          catalog_name : null
+          schema : car_price_v4
+          table: transformed_ground_truth_car_price_v4
+          primary_keys: index  
+  storage_configs:
+    cloud_provider: azure
+    params:
+      storage_account_name: mlcdevtigerstorage38173
+      container_name: mlcore
+  is_scheduled: false
+
+train:
+  datalake_configs:
+    input_tables : 
+      input_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: transformed_feature_car_price_v4
+        primary_keys: index
+      input_2 :
+        catalog_name : null
+        schema : car_price_v4
+        table: transformed_ground_truth_car_price_v4
+        primary_keys: index
+    output_tables : 
+        output_1 :
+          catalog_name : null
+          schema : car_price_v4
+          table: train_car_price_v4
+          primary_keys: index
+  model_configs:
+    registry_platform: databricks
+    model_registry : mlflow
+    unity_catalog : "no"
+    model_registry_params:
+      tracking_env: dev
+      host_url: https://adb-1277783902121094.14.azuredatabricks.net
+    model_params:   
+      model_name: car_price_v4
+  test_size: 0.2
+  feature_columns:
+    - km_driven
+    - age
+    - fuel_Diesel
+    - fuel_Electric
+    - fuel_LPG
+    - fuel_Petrol
+    - seller_type_Individual
+    - seller_type_Trustmark_Dealer
+    - transmission_Manual
+    - owner_Fourth_Above_Owner
+    - owner_Second_Owner
+    - owner_Test_Drive_Car
+    - owner_Third_Owner
+  target_columns:
+  - selling_price
+  is_scheduled: false
+
+data_prep_deployment_ft:
+  datalake_configs:
+    input_tables :
+      input_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: feature_car_price_v4
+        primary_keys: index
+    output_tables :
+        output_1 :
+          catalog_name : null
+          schema : car_price_v4
+          table: dpd_feature_car_price_v4
+          primary_keys: index  
+  storage_configs:
+    cloud_provider: azure
+    params:
+      storage_account_name: mlcdevtigerstorage38173
+      container_name: mlcore
+  is_scheduled: true
+  batch_size: 5000
+  cron_job_schedule: 0 */30 * ? * *
+
+data_prep_deployment_gt:
+  datalake_configs:
+    input_tables :
+      input_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: ground_truth_car_price_v4
+        primary_keys: index
+    output_tables : 
+        output_1 :
+          catalog_name : null
+          schema : car_price_v4
+          table: dpd_ground_truth_car_price_v4
+          primary_keys: index  
+  storage_configs:
+    cloud_provider: azure
+    params:
+      storage_account_name: mlcdevtigerstorage38173
+      container_name: mlcore
+  is_scheduled: true
+  batch_size: 5000
+  cron_job_schedule: 0 */30 * ? * *
+
+inference:
+  datalake_configs:
+    input_tables : 
+      input_1 :
+        catalog_name : null
+        schema : car_price_v4
+        table: dpd_feature_car_price_v4
+        primary_keys: index
+      input_2 :
+        catalog_name : null
+        schema : car_price_v4
+        table: dpd_ground_truth_car_price_v4
+        primary_keys: index
+    output_tables : 
+        output_1 :
+          catalog_name : null
+          schema : car_price_v4
+          table: inference_car_price_v4
+          primary_keys: index
+  is_scheduled: true
+  batch_size: 5000
+  cron_job_schedule: 0 */30 * ? * *
